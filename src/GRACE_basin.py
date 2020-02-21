@@ -75,7 +75,6 @@ mascon_dates = [str(gf.convert_partial_year(fdate)) for fdate in fract_dates]
 print('GRACE, points_in_polygon')
 # Return null geometry sometimes?
 # Shell is not a LinearRing
-# 
 index_mascons_of_interest = gf.points_in_polygon(BUFFER_SHP, mascon_coords, pathOut)
 print(index_mascons_of_interest)
 
@@ -83,6 +82,7 @@ print('open, MASCON_SOLUT')
 data_lines = []
 with open(MASCON_SOLUT) as fp:
     for i, line in enumerate(fp):
+        # print(i, line[0:10])
         if i in np.array(index_mascons_of_interest) + 7:
             data_lines.append(np.array(line.rstrip('\n').rstrip().split(' ')).astype(float))
 
@@ -124,9 +124,11 @@ for b_feature in basin_lyr:
     ids = []
     int_area = []
     total_area = 0
+
     i_m_feature = 0
     for m_feature in mascon_lyr:
         i_m_feature += 1
+        
         m_geom = m_feature.GetGeometryRef()
         test = b_geom.Intersection(m_geom)
         
@@ -142,11 +144,13 @@ for b_feature in basin_lyr:
     print('\ttotal_area: ', total_area)
         
 print('calculate weights')
+# TODO-END, 20200221, QPan, is it correct? Yes
 weights = np.array(int_area)/total_area
 
+print('calculate weighted mascon')
 weighted_line = [data_lines[i] * weights[i] for i in range(len(data_lines))]
-weighted_average = np.sum(weighted_line, 0)
 # print('weighted_line: ', weighted_line)
+weighted_average = np.sum(weighted_line, 0)
 print('weighted_average max: ', np.max(weighted_average), 'min: ', np.min(weighted_average))
 
 print('write OUT_CSV')
