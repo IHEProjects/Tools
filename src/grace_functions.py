@@ -181,7 +181,7 @@ def points_in_polygon(inputfn, pointcoords, pathOut):
                                     plt.scatter('x', 'y', c='c', s='d', marker='.', data=data)
                                 plt.axis("auto")
                                 # plt.show()
-                                plt.savefig('{}.jpg'.format(os.path.join(pathOut, 'fig', title)))
+                                plt.savefig('{}.jpg'.format(os.path.join(pathOut, 'tmp', title)))
                                 plt.cla()
                                 
                                 in_poly.append(icoord)
@@ -208,7 +208,7 @@ def points_in_polygon(inputfn, pointcoords, pathOut):
                                 plt.scatter('x', 'y', c='c', s='d', marker='.', data=data)
                             plt.axis("auto")
                             # plt.show()
-                            plt.savefig('{}.jpg'.format(os.path.join(pathOut, 'fig', title)))
+                            plt.savefig('{}.jpg'.format(os.path.join(pathOut, 'tmp', title)))
                             plt.cla()
                             
                             in_poly.append(icoord)
@@ -252,7 +252,7 @@ def points_in_polygon(inputfn, pointcoords, pathOut):
     plt.xlim(minX, maxX)
     plt.ylim(minY, maxY)
     # plt.show()
-    plt.savefig('{}.jpg'.format(os.path.join(pathOut, 'fig', title)))
+    plt.savefig('{}.jpg'.format(os.path.join(pathOut, 'tmp', title)))
     plt.cla()
     plt.close(fig)
 
