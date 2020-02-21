@@ -82,7 +82,9 @@ print('open, MASCON_SOLUT')
 data_lines = []
 with open(MASCON_SOLUT) as fp:
     for i, line in enumerate(fp):
-        # print(i, line[0:10])
+        # >>> print(i, line[0:10])
+        # 41173 13.08760 2
+        # 41174 12.42396 2
         if i in np.array(index_mascons_of_interest) + 7:
             data_lines.append(np.array(line.rstrip('\n').rstrip().split(' ')).astype(float))
 
