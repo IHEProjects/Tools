@@ -63,11 +63,11 @@ print('MASCON_DATES : "{}"'.format(MASCON_DATES))
 print('GRACE, create_buffer')
 # gf.create_buffer(BASIN_SHP, BUFFER_SHP, BUFFER_DIST)
 
-print('read_csv, MASCON_INFOR')
+print('load, MASCON_INFOR, mascon.txt')
 df_info = pd.read_csv(MASCON_INFOR, sep=r"\s+", header=None, skiprows=14,engine='python')
 mascon_coords = zip(df_info[1], df_info[0])
 
-print('read_csv, MASCON_DATES')
+print('load, MASCON_DATES')
 df_dates = pd.read_csv(MASCON_DATES, sep=r"\s+", header=None, skiprows=13,engine='python')
 fract_dates = df_dates[2]
 mascon_dates = [str(gf.convert_partial_year(fdate)) for fdate in fract_dates]
@@ -78,7 +78,7 @@ print('GRACE, points_in_polygon')
 index_mascons_of_interest = gf.points_in_polygon(BUFFER_SHP, mascon_coords, pathOut)
 print(index_mascons_of_interest)
 
-print('open, MASCON_SOLUT')
+print('load, MASCON_SOLUT, solution.txt')
 data_lines = []
 with open(MASCON_SOLUT) as fp:
     for i, line in enumerate(fp):
