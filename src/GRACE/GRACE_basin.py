@@ -38,7 +38,7 @@ def plot_shp(shp):
 
 case_name = 'Mindanao'  # 97530 km2
 pathIn  = os.path.join(root, '..', 'Data')
-pathOut = os.path.join(root, '..', 'Data', 'Output')
+pathOut = os.path.join(root, '..', 'Output')
 BUFFER_DIST = .71
 # BUFFER_DIST = 0.0
 FIELD_NAME = 'ADM1_EN'
