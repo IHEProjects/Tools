@@ -36,7 +36,7 @@ def plot_shp(shp):
         plt.plot(x,y)
     plt.show()
 
-case_name = 'Mindanao'
+case_name = 'Mindanao'  # 97530 km2
 pathIn  = os.path.join(root, '..', 'Data')
 pathOut = os.path.join(root, '..', 'Data', 'Output')
 BUFFER_DIST = .71
@@ -66,6 +66,7 @@ print('GRACE, create_buffer')
 print('load, MASCON_INFOR, mascon.txt')
 df_info = pd.read_csv(MASCON_INFOR, sep=r"\s+", header=None, skiprows=14,engine='python')
 mascon_coords = zip(df_info[1], df_info[0])
+mascon_area_km = df_info[5]
 
 print('load, MASCON_DATES')
 df_dates = pd.read_csv(MASCON_DATES, sep=r"\s+", header=None, skiprows=13,engine='python')
@@ -76,10 +77,11 @@ print('GRACE, points_in_polygon')
 # Return null geometry sometimes?
 # Shell is not a LinearRing
 index_mascons_of_interest = gf.points_in_polygon(BUFFER_SHP, mascon_coords, pathOut)
-print(index_mascons_of_interest)
+print('index_mascons_of_interest', index_mascons_of_interest)
 
 print('load, MASCON_SOLUT, solution.txt')
 data_lines = []
+area_lines = []
 with open(MASCON_SOLUT) as fp:
     for i, line in enumerate(fp):
         # >>> print(i, line[0:10])
@@ -87,6 +89,7 @@ with open(MASCON_SOLUT) as fp:
         # 41174 12.42396 2
         if i in np.array(index_mascons_of_interest) + 7:
             data_lines.append(np.array(line.rstrip('\n').rstrip().split(' ')).astype(float))
+            area_lines.append(mascon_area_km[i])
 
 print('create, MASCON_SHP of mascon areas')
 # Adapeted from bec's SortGRACE.py
@@ -118,49 +121,66 @@ mascon_lyr = mascon_poly.GetLayer()
 
 print('loop BASIN_SHP basin_lyr, MASCON_SHP mascon_lyr')
 i_b_feature = 0
+int_area_total = np.zeros(basin_lyr.GetFeatureCount())
 for b_feature in basin_lyr:
-    i_b_feature += 1
     b_geom = b_feature.GetGeometryRef()
-    print('basin', i_b_feature, '/', basin_lyr.GetFeatureCount(), b_geom.GetGeometryName(), b_geom.Centroid().ExportToWkt())
+    print('basin', (i_b_feature + 1), '/', basin_lyr.GetFeatureCount(), b_geom.GetGeometryName(), b_geom.Centroid().ExportToWkt())
     
     ids = []
     int_area = []
-    total_area = 0
+    int_area_total[i_b_feature] = 0.0
 
     i_m_feature = 0
     for m_feature in mascon_lyr:
-        i_m_feature += 1
-        
         m_geom = m_feature.GetGeometryRef()
-        test = b_geom.Intersection(m_geom)
+        int_gemo = b_geom.Intersection(m_geom)
         
         ids.append(m_feature.GetField(0))
-        int_area.append(test.GetArea())
-        total_area += test.GetArea()
+        int_area.append(int_gemo.GetArea())
+        int_area_total[i_b_feature] += int_gemo.GetArea()
+        # print('\t + int_area_total[{}.{}]: '.format(i_b_feature, i_m_feature), int_area_total[i_b_feature])
         
-        if i_m_feature % 100 == 0:
-            print('\t', 'mascon', i_m_feature, '/', mascon_lyr.GetFeatureCount(), m_geom.GetGeometryName(), m_geom.Centroid().ExportToWkt())
-            print('\t', '\ttotal_area: ', total_area)
+        if (i_m_feature + 1) % 100 == 0:
+            print('\t', 'mascon', (i_m_feature + 1), '/', mascon_lyr.GetFeatureCount(), m_geom.GetGeometryName(), m_geom.Centroid().ExportToWkt())
+            print('\t', '\ttotal_area: ', int_area_total[i_b_feature])
+        i_m_feature += 1
         
     mascon_lyr.ResetReading()  # reset the read position to the start
-    print('\ttotal_area: ', total_area)
+    print('\tint_area_total[{}]: '.format(i_b_feature), int_area_total[i_b_feature])
         
-print('calculate weights')
-# TODO-END, 20200221, QPan, is it correct? Yes
-weights = np.array(int_area)/total_area
+    print('calculate weights')
+    # TODO-END, 20200221, QPan, is it correct? Yes
+    weights = np.array(int_area) / np.sum(int_area_total[i_b_feature])
+    print('weights', weights)
+    print('sum(weights)', np.sum(weights))
 
-print('calculate weighted mascon')
-weighted_line = [data_lines[i] * weights[i] for i in range(len(data_lines))]
-# print('weighted_line: ', weighted_line)
-weighted_average = np.sum(weighted_line, 0)
-print('weighted_average max: ', np.max(weighted_average), 'min: ', np.min(weighted_average))
+    print('calculate weighted mascon')
+    weighted_line = [data_lines[i] * weights[i] for i in range(len(data_lines))]
+    # print('weighted_line: ', weighted_line)
+    weighted_average_EWH = np.sum(weighted_line, 0)
+    print('weighted_average_EWH max: ', np.max(weighted_average_EWH), 'min: ', np.min(weighted_average_EWH))
 
-print('write OUT_CSV')
-with open(OUT_CSV, 'w',newline='') as csvfile:
-    spamwriter = csv.writer(csvfile, delimiter=',')
-    
-    spamwriter.writerow(['date', 'Equivalent Water Height [mm]'])
-    
-    for date, value in zip(mascon_dates, weighted_average):
-        spamwriter.writerow([date, value*10])
+    print('calculate storage change')
+    # GRACE, 35 * 12453 km2 = 435855 km2
+    # Wiki, 97530 km2
+    # Shapefile, sum([‭12394.541633912566,
+    #                 12399.979617052235,
+    #                 12402.623636065848,
+    #                 12398.418481014005,
+    #                 12397.502652393287,
+    #                 12401.18128282408]) = ‭74394.24730326202
+    weighted_area = [area_lines[i] * weights[i] for i in range(len(area_lines))]
+    weighted_total_Area = np.sum(weighted_area, 0)
+    print('weighted_total_Area km2:', weighted_total_Area)
+
+    print('write OUT_CSV')
+    with open('{}-{}'.format(OUT_CSV, i_b_feature), 'w', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=',')
+        
+        spamwriter.writerow(['date', 'Equivalent Water Height [mm]', 'Storage Change [km2*m]'])
+        
+        for date, value in zip(mascon_dates, weighted_average_EWH):
+            spamwriter.writerow([date, value*10.0, value*0.01*weighted_total_Area])
+
+    i_b_feature += 1
 
