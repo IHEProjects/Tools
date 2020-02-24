@@ -151,8 +151,8 @@ for b_feature in basin_lyr:
     print('calculate weights')
     # TODO-END, 20200221, QPan, is it correct? Yes
     weights = np.array(int_area) / np.sum(int_area_total[i_b_feature])
-    print('weights', weights)
-    print('sum(weights)', np.sum(weights))
+    # print('weights', weights)
+    # print('sum(weights)', np.sum(weights))
 
     print('calculate weighted mascon')
     weighted_line = [data_lines[i] * weights[i] for i in range(len(data_lines))]

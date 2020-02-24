@@ -159,7 +159,7 @@ def points_in_polygon(inputfn, pointcoords, pathOut):
                     }
                     if ingeomTypeName == 'MULTIPOLYGON':
                         for polygon in ingeom:
-                            is_contain = polygon.Contains(point)                                    
+                            is_contain = polygon.Contains(point)
 
                             fig, ax = plt.subplots(1)
                             if is_contain:
@@ -178,7 +178,7 @@ def points_in_polygon(inputfn, pointcoords, pathOut):
                                     data['d'] = [1 for ipt in range(0, ring.GetPointCount())]
                                     
                                     plt.scatter(coord[0], coord[1], marker='o')
-                                    plt.scatter('x', 'y', c='c', s='d', marker='.', data=data)
+                                    plt.scatter(x='x', y='y', c='c', s='d', marker='.', data=data)
                                 plt.axis("auto")
                                 # plt.show()
                                 plt.savefig('{}.jpg'.format(os.path.join(pathOut, 'tmp', title)))
@@ -205,7 +205,7 @@ def points_in_polygon(inputfn, pointcoords, pathOut):
                                 data['d'] = [1 for ipt in range(0, ring.GetPointCount())]
 
                                 plt.scatter(coord[0], coord[1], marker='o')
-                                plt.scatter('x', 'y', c='c', s='d', marker='.', data=data)
+                                plt.scatter(x='x', y='y', c='c', s='d', marker='.', data=data)
                             plt.axis("auto")
                             # plt.show()
                             plt.savefig('{}.jpg'.format(os.path.join(pathOut, 'tmp', title)))
@@ -244,10 +244,12 @@ def points_in_polygon(inputfn, pointcoords, pathOut):
                     data['y'] = [ring.GetPoint(ipt)[1] for ipt in range(0, ring.GetPointCount())]
                     data['c'] = [ipt for ipt in range(0, ring.GetPointCount())]
                     data['d'] = [1 for ipt in range(0, ring.GetPointCount())]
-                    plt.scatter('x', 'y', c='c', s='d', marker='.', data=data)
+                    plt.scatter(x='x', y='y', c='c', s='d', marker='.', data=data)
     inputlyr.ResetReading()
 
-    plt.scatter('x', 'y', marker='o', data=in_bbox)
+    plt.scatter(x='x', y='y', marker='o', data=in_bbox)
+    for i in range(len(in_bbox['id'])):
+        plt.text(x=in_bbox['x'][i], y=in_bbox['y'][i], s=in_bbox['id'][i])
     # plt.axis("auto")
     plt.xlim(minX, maxX)
     plt.ylim(minY, maxY)
