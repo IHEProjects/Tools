@@ -41,6 +41,7 @@ pathIn  = os.path.join(root, '..', 'Data')
 pathOut = os.path.join(root, '..', 'Data', 'Output')
 BUFFER_DIST = .71
 # BUFFER_DIST = 0.0
+FIELD_NAME = 'ADM1_EN'
 
 BASIN_SHP  = os.path.join(pathIn, 'Shapefile', "{cn}.shp".format(cn=case_name))
 OUT_CSV = os.path.join(pathOut , "{cn}.csv".format(cn=case_name))
@@ -61,7 +62,7 @@ print('MASCON_SOLUT : "{}"'.format(MASCON_SOLUT))
 print('MASCON_DATES : "{}"'.format(MASCON_DATES))
 
 print('GRACE, create_buffer')
-# gf.create_buffer(BASIN_SHP, BUFFER_SHP, BUFFER_DIST)
+gf.create_buffer(BASIN_SHP, BUFFER_SHP, BUFFER_DIST, FIELD_NAME)
 
 print('load, MASCON_INFOR, mascon.txt')
 df_info = pd.read_csv(MASCON_INFOR, sep=r"\s+", header=None, skiprows=14,engine='python')
@@ -74,10 +75,10 @@ fract_dates = df_dates[2]
 mascon_dates = [str(gf.convert_partial_year(fdate)) for fdate in fract_dates]
 
 print('GRACE, points_in_polygon')
-# Return null geometry sometimes?
-# Shell is not a LinearRing
+# Return null geometry sometimes? Shell is not a LinearRing
+# TODO-END, 20200221, QPan, wkbMultiPolygon.wkbPolygon.wkbLinearRing 
 index_mascons_of_interest = gf.points_in_polygon(BUFFER_SHP, mascon_coords, pathOut)
-print('index_mascons_of_interest', index_mascons_of_interest)
+# print('index_mascons_of_interest', index_mascons_of_interest)
 
 print('load, MASCON_SOLUT, solution.txt')
 data_lines = []

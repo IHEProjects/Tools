@@ -30,7 +30,7 @@ import pprint
 
 
 # from ogr cookbook https://pcjericks.github.io/py-gdalogr-cookbook/layers.html
-def create_buffer(inputfn, output_bufferfn, buffer_dist):
+def create_buffer(inputfn, output_bufferfn, buffer_dist, field_name):
     driver = ogr.GetDriverByName('ESRI Shapefile')
     inputds = driver.Open(inputfn, 0)
     if inputds is None:
@@ -64,20 +64,51 @@ def create_buffer(inputfn, output_bufferfn, buffer_dist):
 
     # load features in all layers
     outFeature = None
+    # for feature in inputlyr:
+    #     print('\t{}'.format(feature.GetField(field_name)))
+    #     ingeom = feature.GetGeometryRef()
+    # 
+    #     # buffer features
+    #     geomBuffer = ingeom.Buffer(buffer_dist)
+    # 
+    #     # create features
+    #     outFeature = ogr.Feature(featureDefn)
+    #     outFeature.SetGeometry(geomBuffer)
+    #     bufferlyr.CreateFeature(outFeature)
+    # 
+    #     # deallocated features
+    #     outFeature = None
+
+    minX, maxX, minY, maxY = float("infinity"), -float("infinity"), float("infinity"), -float("infinity")
     for feature in inputlyr:
-        print('\t{}'.format(feature.GetField("ADM1_EN")))
         ingeom = feature.GetGeometryRef()
-
-        # buffer features
-        geomBuffer = ingeom.Buffer(buffer_dist)
-
-        # create features
-        outFeature = ogr.Feature(featureDefn)
-        outFeature.SetGeometry(geomBuffer)
-        bufferlyr.CreateFeature(outFeature)
-
-        # deallocated features
-        outFeature = None
+        (tmp_minX, tmp_maxX, tmp_minY, tmp_maxY) = ingeom.GetEnvelope()
+        if tmp_minX < minX:
+            minX = tmp_minX
+        if tmp_maxX > maxX:
+            maxX = tmp_maxX
+        if tmp_minY < minY:
+            minY = tmp_minY
+        if tmp_maxY > maxY:
+            maxY = tmp_maxY
+    inputlyr.ResetReading()
+    minX = minX - buffer_dist
+    maxX = maxX + buffer_dist
+    minY = minY - buffer_dist
+    maxY = maxY + buffer_dist
+    
+    outFeature = ogr.Feature(featureDefn)
+    ring = ogr.Geometry(ogr.wkbLinearRing)
+    ring.AddPoint(minX, maxY)
+    ring.AddPoint(maxX, maxY)
+    ring.AddPoint(maxX, minY)
+    ring.AddPoint(minX, minY)
+    ring.AddPoint(minX, maxY)
+    poly = ogr.Geometry(ogr.wkbPolygon)
+    poly.AddGeometry(ring)
+    outFeature.SetGeometry(poly)
+    bufferlyr.CreateFeature(outFeature)
+    outFeature = None
 
 def points_in_polygon(inputfn, pointcoords, pathOut):
     # load features
@@ -164,7 +195,7 @@ def points_in_polygon(inputfn, pointcoords, pathOut):
                             fig, ax = plt.subplots(1)
                             if is_contain:
                                 title = 'Mascon id={} xy={}, Poly id={} FID={}'.format(icoord, coord, ipoly, feature.GetFID())
-                                print(title)
+                                # print(title)
 
                                 plt.title(title)
                                 for ring in polygon:
@@ -194,7 +225,7 @@ def points_in_polygon(inputfn, pointcoords, pathOut):
                         fig, ax = plt.subplots(1)
                         if is_contain:
                             title = 'Mascon id={} xy={}, Poly id={} FID={}'.format(icoord, coord, ipoly, feature.GetFID())
-                            print(title)
+                            # print(title)
                                 
                             plt.title(title)
                             for ring in ingeom:
