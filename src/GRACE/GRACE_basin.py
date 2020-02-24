@@ -125,7 +125,7 @@ i_b_feature = 0
 int_area_total = np.zeros(basin_lyr.GetFeatureCount())
 for b_feature in basin_lyr:
     b_geom = b_feature.GetGeometryRef()
-    print('basin', (i_b_feature + 1), '/', basin_lyr.GetFeatureCount(), b_geom.GetGeometryName(), b_geom.Centroid().ExportToWkt())
+    print('\tbasin', (i_b_feature + 1), '/', basin_lyr.GetFeatureCount(), b_geom.GetGeometryName(), b_geom.Centroid().ExportToWkt())
     
     ids = []
     int_area = []
@@ -149,19 +149,19 @@ for b_feature in basin_lyr:
     mascon_lyr.ResetReading()  # reset the read position to the start
     print('\tint_area_total[{}]: '.format(i_b_feature), int_area_total[i_b_feature])
         
-    print('calculate weights')
+    print('\tcalculate weights')
     # TODO-END, 20200221, QPan, is it correct? Yes
     weights = np.array(int_area) / np.sum(int_area_total[i_b_feature])
-    # print('weights', weights)
-    # print('sum(weights)', np.sum(weights))
+    # print('\tweights', weights)
+    # print('\tsum(weights)', np.sum(weights))
 
-    print('calculate weighted mascon')
+    print('\tcalculate weighted mascon')
     weighted_line = [data_lines[i] * weights[i] for i in range(len(data_lines))]
-    # print('weighted_line: ', weighted_line)
+    # print('\tweighted_line: ', weighted_line)
     weighted_average_EWH = np.sum(weighted_line, 0)
-    print('weighted_average_EWH max: ', np.max(weighted_average_EWH), 'min: ', np.min(weighted_average_EWH))
+    print('\tweighted_average_EWH max: ', np.max(weighted_average_EWH), 'min: ', np.min(weighted_average_EWH))
 
-    print('calculate storage change')
+    print('\tcalculate storage change')
     # GRACE, 35 * 12453 km2 = 435855 km2
     # Wiki, 97530 km2
     # Shapefile, sum([‭12394.541633912566,
@@ -172,9 +172,9 @@ for b_feature in basin_lyr:
     #                 12401.18128282408]) = ‭74394.24730326202
     weighted_area = [area_lines[i] * weights[i] for i in range(len(area_lines))]
     weighted_total_Area = np.sum(weighted_area, 0)
-    print('weighted_total_Area km2:', weighted_total_Area)
+    print('\tweighted_total_Area km2:', weighted_total_Area)
 
-    print('write OUT_CSV')
+    print('\twrite OUT_CSV')
     with open('{}-{}'.format(OUT_CSV, i_b_feature), 'w', newline='') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',')
         
