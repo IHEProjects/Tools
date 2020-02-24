@@ -74,7 +74,7 @@ df_dates = pd.read_csv(MASCON_DATES, sep=r"\s+", header=None, skiprows=13,engine
 fract_dates = df_dates[2]
 mascon_dates = [str(gf.convert_partial_year(fdate)) for fdate in fract_dates]
 
-print('GRACE, points_in_polygon')
+print('points_in_polygon, BUFFER_SHP')
 # Return null geometry sometimes? Shell is not a LinearRing
 # TODO-END, 20200221, QPan, wkbMultiPolygon.wkbPolygon.wkbLinearRing 
 index_mascons_of_interest = gf.points_in_polygon(BUFFER_SHP, mascon_coords, pathOut)
@@ -125,7 +125,7 @@ i_b_feature = 0
 int_area_total = np.zeros(basin_lyr.GetFeatureCount())
 for b_feature in basin_lyr:
     b_geom = b_feature.GetGeometryRef()
-    print('\tbasin', (i_b_feature + 1), '/', basin_lyr.GetFeatureCount(), b_geom.GetGeometryName(), b_geom.Centroid().ExportToWkt())
+    print('basin', (i_b_feature + 1), '/', basin_lyr.GetFeatureCount(), b_geom.GetGeometryName(), b_geom.Centroid().ExportToWkt())
     
     ids = []
     int_area = []
@@ -145,8 +145,8 @@ for b_feature in basin_lyr:
             print('\t', 'mascon', (i_m_feature + 1), '/', mascon_lyr.GetFeatureCount(), m_geom.GetGeometryName(), m_geom.Centroid().ExportToWkt())
             print('\t', '\ttotal_area: ', int_area_total[i_b_feature])
         i_m_feature += 1
-        
-    mascon_lyr.ResetReading()  # reset the read position to the start
+    # reset the read position to the start
+    mascon_lyr.ResetReading()
     print('\tint_area_total[{}]: '.format(i_b_feature), int_area_total[i_b_feature])
         
     print('\tcalculate weights')
